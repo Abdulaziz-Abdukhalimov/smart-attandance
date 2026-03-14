@@ -11,7 +11,16 @@ import { ClassModule } from './modules/class/class.module';
 import { SubjectModule } from './modules/subject/subject.module';
 
 @Module({
-  imports: [AuthModule, TeacherModule, StudentModule, ScheduleModule, AttendanceModule, SchoolModule, ClassModule, SubjectModule],
+  imports: [
+    AuthModule,
+    TeacherModule,
+    StudentModule,
+    ScheduleModule,
+    AttendanceModule,
+    SchoolModule,
+    ClassModule,
+    SubjectModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
