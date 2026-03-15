@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { TeacherModule } from './modules/teacher/teacher.module';
-import { StudentModule } from './modules/student/student.module';
-import { ScheduleModule } from './modules/schedule/schedule.module';
-import { AttendanceModule } from './modules/attendance/attendance.module';
-import { SchoolModule } from './modules/school/school.module';
-import { ClassModule } from './modules/class/class.module';
-import { SubjectModule } from './modules/subject/subject.module';
+import { AuthModule } from './components/auth/auth.module';
+import { TeacherModule } from './components/teacher/teacher.module';
+import { StudentModule } from './components/student/student.module';
+import { ScheduleModule } from './components/schedule/schedule.module';
+import { AttendanceModule } from './components/attendance/attendance.module';
+import { SchoolModule } from './components/school/school.module';
+import { ClassModule } from './components/class/class.module';
+import { SubjectModule } from './components/subject/subject.module';
+import { DatabaseModule } from './database/database/database.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SubjectModule } from './modules/subject/subject.module';
     SchoolModule,
     ClassModule,
     SubjectModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
