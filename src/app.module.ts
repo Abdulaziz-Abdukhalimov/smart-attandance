@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppConfigModule } from './config/config.module';
 import { AuthModule } from './components/auth/auth.module';
 import { TeacherModule } from './components/teacher/teacher.module';
 import { StudentModule } from './components/student/student.module';
@@ -13,6 +14,7 @@ import { DatabaseModule } from './database/database/database.module';
 
 @Module({
   imports: [
+    AppConfigModule,
     AuthModule,
     TeacherModule,
     StudentModule,
