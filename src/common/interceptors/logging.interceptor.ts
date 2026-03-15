@@ -19,10 +19,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: () =>
-          this.logger.log(`${method} ${url} - ${Date.now() - now}ms`),
+        next: () => this.logger.log(`${method} ${url} - ${Date.now() - now}ms`),
         error: (err) =>
-          this.logger.error(`${method} ${url} - ${Date.now() - now}ms`, err.stack),
+          this.logger.error(
+            `${method} ${url} - ${Date.now() - now}ms`,
+            err.stack,
+          ),
       }),
     );
   }
