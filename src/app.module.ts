@@ -8,7 +8,7 @@ import { StudentModule } from './components/student/student.module';
 import { ScheduleModule } from './components/schedule/schedule.module';
 import { AttendanceModule } from './components/attendance/attendance.module';
 import { SchoolModule } from './modules/school/school.module';
-import { ClassModule } from './components/class/class.module';
+import { ClassModule } from './modules/class/class.module';
 import { SubjectModule } from './components/subject/subject.module';
 import { DatabaseModule } from './database/database/database.module';
 
