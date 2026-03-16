@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { DayOfWeek } from 'src/libs/enums/schedule.enum';
+import { DayOfWeek } from '../../../libs/enums/schedule.enum';
 
 const ScheduleSchema = new Schema(
   {
@@ -23,16 +23,24 @@ const ScheduleSchema = new Schema(
       required: true,
       ref: 'Subject',
     },
-    dayOfWeek: {
+    weekday: {
       type: Number,
-      enum: Object.values(DayOfWeek).filter((v) => typeof v === 'number'),
+      enum: Object.values(DayOfWeek),
       required: true,
     },
-    periodNumber: {
+    period: {
       type: Number,
       required: true,
       min: 1,
       max: 10,
+    },
+    startTime: {
+      type: String,
+      required: true,
+    },
+    endTime: {
+      type: String,
+      required: true,
     },
     isActive: {
       type: Boolean,
@@ -42,12 +50,8 @@ const ScheduleSchema = new Schema(
   { timestamps: true, collection: 'schedules' },
 );
 
-ScheduleSchema.index({ schoolId: 1 });
-ScheduleSchema.index({ schoolId: 1, teacherId: 1, dayOfWeek: 1 });
-ScheduleSchema.index({ schoolId: 1, classId: 1, dayOfWeek: 1 });
-ScheduleSchema.index(
-  { schoolId: 1, classId: 1, subjectId: 1, dayOfWeek: 1, periodNumber: 1 },
-  { unique: true },
-);
+ScheduleSchema.index({ schoolId: 1, weekday: 1, period: 1, classId: 1 }, { unique: true });
+ScheduleSchema.index({ schoolId: 1, teacherId: 1, weekday: 1 });
+ScheduleSchema.index({ teacherId: 1, weekday: 1 });
 
 export default ScheduleSchema;

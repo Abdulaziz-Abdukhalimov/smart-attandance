@@ -17,11 +17,9 @@ const DailySummaryLogSchema = new Schema(
     },
     sentAt: {
       type: Date,
-      default: null,
     },
     errorMessage: {
       type: String,
-      default: null,
     },
   },
   { timestamps: true, collection: 'daily_summary_logs' },

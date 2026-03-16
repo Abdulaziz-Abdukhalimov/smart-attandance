@@ -31,32 +31,24 @@ const AttendanceSessionSchema = new Schema(
       type: String,
       required: true,
     },
-    periodNumber: {
+    period: {
       type: Number,
       required: true,
-      min: 1,
-      max: 10,
+    },
+    openedAt: {
+      type: Date,
+      required: true,
     },
     isClosed: {
       type: Boolean,
       default: false,
     },
-    openedAt: {
-      type: Date,
-      default: null,
-    },
-    closedAt: {
-      type: Date,
-      default: null,
-    },
   },
   { timestamps: true, collection: 'attendance_sessions' },
 );
 
-AttendanceSessionSchema.index({ schoolId: 1 });
+AttendanceSessionSchema.index({ schoolId: 1, date: 1, classId: 1, period: 1 }, { unique: true });
+AttendanceSessionSchema.index({ teacherId: 1, date: 1 });
 AttendanceSessionSchema.index({ schoolId: 1, date: 1 });
-AttendanceSessionSchema.index({ schoolId: 1, teacherId: 1, date: 1 });
-AttendanceSessionSchema.index({ schoolId: 1, classId: 1, date: 1 });
-AttendanceSessionSchema.index({ scheduleId: 1, date: 1 }, { unique: true });
 
 export default AttendanceSessionSchema;

@@ -10,7 +10,6 @@ const SubjectSchema = new Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
     },
     isActive: {
       type: Boolean,
@@ -20,7 +19,7 @@ const SubjectSchema = new Schema(
   { timestamps: true, collection: 'subjects' },
 );
 
-SubjectSchema.index({ schoolId: 1 });
 SubjectSchema.index({ schoolId: 1, name: 1 }, { unique: true });
+SubjectSchema.index({ schoolId: 1, isActive: 1 });
 
 export default SubjectSchema;

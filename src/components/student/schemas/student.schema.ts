@@ -1,5 +1,4 @@
 import { Schema } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 
 const StudentSchema = new Schema(
   {
@@ -13,27 +12,24 @@ const StudentSchema = new Schema(
       required: true,
       ref: 'Class',
     },
-    fullName: {
+    firstName: {
       type: String,
       required: true,
-      trim: true,
     },
-    parentPhone: {
+    lastName: {
       type: String,
       required: true,
-      trim: true,
     },
-    parentTelegramId: {
+    parentIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Parent',
+      },
+    ],
+    connectCode: {
       type: String,
-      default: null,
-    },
-    connectionCode: {
-      type: String,
-      default: () => uuidv4(),
-    },
-    isConnected: {
-      type: Boolean,
-      default: false,
+      required: true,
+      unique: true,
     },
     isActive: {
       type: Boolean,
@@ -43,10 +39,8 @@ const StudentSchema = new Schema(
   { timestamps: true, collection: 'students' },
 );
 
-StudentSchema.index({ schoolId: 1 });
 StudentSchema.index({ schoolId: 1, classId: 1 });
-StudentSchema.index({ connectionCode: 1 }, { unique: true });
-StudentSchema.index({ parentTelegramId: 1 });
 StudentSchema.index({ schoolId: 1, isActive: 1 });
+StudentSchema.index({ connectCode: 1 }, { unique: true });
 
 export default StudentSchema;
