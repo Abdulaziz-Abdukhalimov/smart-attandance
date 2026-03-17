@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { NotificationsService } from './notifications.service';
+import { NotificationsController } from './notifications.controller';
 import DailySummaryLogSchema from './schemas/daily-summary-log.schema';
 import StudentSchema from '../../components/student/schemas/student.schema';
 import AttendanceSchema from '../../components/attendance/schemas/attendance.schema';
@@ -21,6 +22,7 @@ import { TelegramModule } from '../telegram/telegram.module';
     ]),
   ],
   providers: [NotificationsService],
+  controllers: [NotificationsController],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

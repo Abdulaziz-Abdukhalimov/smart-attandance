@@ -29,6 +29,9 @@ const TeacherSchema = new Schema(
       enum: Object.values(TeacherRole),
       default: TeacherRole.TEACHER,
     },
+    avatar: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,

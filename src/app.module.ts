@@ -18,6 +18,7 @@ import { AttendanceModule } from './components/attendance/attendance.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ParentsModule } from './modules/parents/parents.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 // Global guards
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -38,6 +39,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     TelegramModule,
     NotificationsModule,
     ParentsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
 import { TeacherRole } from '../enums/teacher-role.enum';
 
 export class CreateTeacherDto {
@@ -19,4 +19,8 @@ export class CreateTeacherDto {
 
   @IsEnum(TeacherRole)
   role?: TeacherRole;
+
+  @IsOptional()
+  @IsUrl()
+  avatar?: string;
 }

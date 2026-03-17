@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { SubscriptionPlan } from '../schemas/school.schema';
 
 export class CreateSchoolDto {
   @IsString()
@@ -12,4 +13,16 @@ export class CreateSchoolDto {
   @IsString()
   @IsNotEmpty()
   phone: string;
+
+  @IsOptional()
+  @IsUrl()
+  logo?: string;
+
+  @IsOptional()
+  @IsEnum(SubscriptionPlan)
+  subscriptionPlan?: SubscriptionPlan;
+
+  @IsOptional()
+  @IsDateString()
+  subscriptionEnd?: string;
 }
