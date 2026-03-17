@@ -43,20 +43,38 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   }
 
   private registerHandlers() {
+    // /start — welcome message with main menu buttons
     this.bot.onText(/\/start/, async (msg: any) => {
       const chatId = String(msg.chat.id);
+      const firstName = msg.from?.first_name ?? 'Ota-ona';
+
       await this.bot.sendMessage(
         chatId,
-        '👋 Welcome to Smart Attendance Bot!\n\nTo connect your child, send:\n/connect <CODE>\n\nExample: /connect ABC1234567',
+        `👋 Assalomu alaykum, *${firstName}*!\n\n🏫 *Smart Davomat* botiga xush kelibsiz!\n\nFarzandingizni ulash uchun maktabdan olgan *ULANISH KODI*ni yuboring.\n\n📎 Misol: /connect ABC1234567`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            keyboard: [
+              [{ text: '👨‍👩‍👧 Farzandlarim' }, { text: '📊 Bugungi davomat' }],
+              [{ text: '❓ Yordam' }],
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: false,
+          },
+        },
       );
     });
 
+    // /connect CODE — link parent to student
     this.bot.onText(/\/connect (.+)/, async (msg: any, match: any) => {
       const chatId = String(msg.chat.id);
       const code = match?.[1]?.trim().toUpperCase();
 
       if (!code) {
-        await this.bot.sendMessage(chatId, '❌ Please provide a connect code.');
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Iltimos, ulanish kodini kiriting.\n\nMisol: /connect ABC1234567',
+        );
         return;
       }
 
@@ -65,17 +83,35 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         const student = (await this.studentModel
           .findOne({ connectCode: code })
           .lean()) as any;
+
         await this.bot.sendMessage(
           chatId,
-          `✅ Connected successfully!\n\nYou are now linked to: *${student.firstName} ${student.lastName}*\n\nYou will receive daily attendance summaries.`,
-          { parse_mode: 'Markdown' },
+          `✅ *Muvaffaqiyatli ulandi!*\n\n👦 Farzandingiz: *${student.firstName} ${student.lastName}*\n\n📬 Har kuni soat 16:00 da davomat xulosasi yuboriladi.`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              keyboard: [
+                [{ text: '👨‍👩‍👧 Farzandlarim' }, { text: '📊 Bugungi davomat' }],
+                [{ text: '❓ Yordam' }],
+              ],
+              resize_keyboard: true,
+            },
+          },
         );
       } catch (err: any) {
-        await this.bot.sendMessage(chatId, `❌ ${err.message}`);
+        const isNotFound = err.message?.includes('connect code') || err.status === 404;
+        await this.bot.sendMessage(
+          chatId,
+          isNotFound
+            ? '❌ *Ulanish kodi topilmadi.*\n\nIltimos, maktabdan to\'g\'ri kodni oling va qayta urinib ko\'ring.'
+            : `❌ Xatolik: ${err.message}`,
+          { parse_mode: 'Markdown' },
+        );
       }
     });
 
-    this.bot.onText(/\/mystudents/, async (msg: any) => {
+    // Keyboard button: "Farzandlarim" / /mystudents
+    this.bot.onText(/\/mystudents|👨‍👩‍👧 Farzandlarim/, async (msg: any) => {
       const chatId = String(msg.chat.id);
       const parent = (await this.parentModel
         .findOne({ telegramChatId: chatId })
@@ -83,14 +119,51 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         .lean()) as any;
 
       if (!parent || !parent.studentIds?.length) {
-        await this.bot.sendMessage(chatId, 'You have no connected students.');
+        await this.bot.sendMessage(
+          chatId,
+          '📭 Hozircha hech qanday farzand ulanmagan.\n\n/connect *KOD* buyrug\'ini yuboring.',
+          { parse_mode: 'Markdown' },
+        );
         return;
       }
 
       const list = parent.studentIds
-        .map((s: any) => `• ${s.firstName} ${s.lastName}`)
+        .map((s: any, i: number) => `${i + 1}. 👦 ${s.firstName} ${s.lastName}`)
         .join('\n');
-      await this.bot.sendMessage(chatId, `Your connected students:\n${list}`);
+
+      await this.bot.sendMessage(
+        chatId,
+        `👨‍👩‍👧 *Sizning farzandlaringiz:*\n\n${list}`,
+        { parse_mode: 'Markdown' },
+      );
+    });
+
+    // Keyboard button: "Bugungi davomat"
+    this.bot.onText(/📊 Bugungi davomat/, async (msg: any) => {
+      const chatId = String(msg.chat.id);
+      await this.bot.sendMessage(
+        chatId,
+        '📊 Bugungi davomat xulosasi har kuni soat *16:00* da avtomatik yuboriladi.\n\nAgar bugungi ma\'lumotni ko\'rmoqchi bo\'lsangiz, kechqurun 16:00 dan keyin tekshiring.',
+        { parse_mode: 'Markdown' },
+      );
+    });
+
+    // Keyboard button: "Yordam"
+    this.bot.onText(/❓ Yordam/, async (msg: any) => {
+      const chatId = String(msg.chat.id);
+      await this.bot.sendMessage(
+        chatId,
+        `❓ *Yordam*\n\n` +
+        `📌 *Buyruqlar:*\n` +
+        `/start — Bosh menyu\n` +
+        `/connect KOD — Farzandni ulash\n` +
+        `/mystudents — Farzandlar ro'yxati\n\n` +
+        `📌 *Ulanish kodi nima?*\n` +
+        `Har bir o'quvchiga maktab tomonidan berilgan maxsus kod. Sinf rahbaridan yoki maktab administratoridan so'rang.\n\n` +
+        `📌 *Davomat qachon keladi?*\n` +
+        `Har kuni soat 16:00 da avtomatik yuboriladi.`,
+        { parse_mode: 'Markdown' },
+      );
     });
 
     this.bot.on('polling_error', (error: any) => {
@@ -99,24 +172,29 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   }
 
   async connectParent(telegramChatId: string, connectCode: string, from?: any) {
+    // 1. Find student by connect code
     const student = (await this.studentModel
       .findOne({ connectCode, isActive: true })
       .lean()) as any;
     if (!student) throw new NotFoundException('Invalid connect code');
 
-    let parent = (await this.parentModel
+    // 2. Check if this Telegram account is already registered
+    let parentByTelegram = (await this.parentModel
       .findOne({ telegramChatId })
       .lean()) as any;
 
-    if (!parent) {
-      parent = await this.parentModel.create({
-        telegramChatId,
-        telegramUsername: from?.username,
-        firstName: from?.first_name,
-        studentIds: [student._id],
-      });
-    } else {
-      const alreadyLinked = parent.studentIds.some(
+    // 3. Check if admin pre-registered a parent for this student (no telegramChatId yet)
+    const preRegistered = (await this.parentModel
+      .findOne({
+        studentIds: student._id,
+        telegramChatId: { $exists: false },
+        isActive: true,
+      })
+      .lean()) as any;
+
+    if (parentByTelegram) {
+      // Already has Telegram account — just add student if not linked
+      const alreadyLinked = parentByTelegram.studentIds.some(
         (id: any) => id.toString() === student._id.toString(),
       );
       if (!alreadyLinked) {
@@ -124,16 +202,40 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           { telegramChatId },
           { $push: { studentIds: student._id } },
         );
+        await this.studentModel.updateOne(
+          { _id: student._id },
+          { $addToSet: { parentIds: parentByTelegram._id } },
+        );
       }
+    } else if (preRegistered) {
+      // Admin pre-created this parent — link their Telegram to existing record
+      await this.parentModel.updateOne(
+        { _id: preRegistered._id },
+        {
+          $set: {
+            telegramChatId,
+            telegramUsername: from?.username,
+          },
+          $addToSet: { studentIds: student._id },
+        },
+      );
+      await this.studentModel.updateOne(
+        { _id: student._id },
+        { $addToSet: { parentIds: preRegistered._id } },
+      );
+    } else {
+      // New parent — create fresh record
+      const newParent = await this.parentModel.create({
+        telegramChatId,
+        telegramUsername: from?.username,
+        fullName: from?.first_name,
+        studentIds: [student._id],
+      });
+      await this.studentModel.updateOne(
+        { _id: student._id },
+        { $addToSet: { parentIds: newParent._id } },
+      );
     }
-
-    const parentDoc = (await this.parentModel
-      .findOne({ telegramChatId })
-      .lean()) as any;
-    await this.studentModel.updateOne(
-      { _id: student._id },
-      { $addToSet: { parentIds: parentDoc._id } },
-    );
 
     return student;
   }

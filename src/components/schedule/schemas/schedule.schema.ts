@@ -25,7 +25,7 @@ const ScheduleSchema = new Schema(
     },
     weekday: {
       type: Number,
-      enum: Object.values(DayOfWeek),
+      enum: Object.values(DayOfWeek).filter((v) => typeof v === 'number'),
       required: true,
     },
     period: {

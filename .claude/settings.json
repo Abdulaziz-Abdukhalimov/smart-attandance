@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs kill:*)",
+      "Bash(pkill -f 'nest start')",
+      "Bash(pkill -f ts-node)"
+    ]
+  }
+}

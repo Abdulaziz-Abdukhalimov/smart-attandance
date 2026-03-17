@@ -2,15 +2,18 @@ import { Schema } from 'mongoose';
 
 const ParentSchema = new Schema(
   {
+    fullName: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
     telegramChatId: {
       type: String,
-      required: true,
+      sparse: true,
       unique: true,
     },
     telegramUsername: {
-      type: String,
-    },
-    firstName: {
       type: String,
     },
     studentIds: [
@@ -27,7 +30,8 @@ const ParentSchema = new Schema(
   { timestamps: true, collection: 'parents' },
 );
 
-ParentSchema.index({ telegramChatId: 1 }, { unique: true });
+ParentSchema.index({ telegramChatId: 1 }, { unique: true, sparse: true });
+ParentSchema.index({ phone: 1 });
 ParentSchema.index({ studentIds: 1 });
 
 export default ParentSchema;

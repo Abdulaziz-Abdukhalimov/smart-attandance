@@ -17,6 +17,7 @@ import { ScheduleModule } from './components/schedule/schedule.module';
 import { AttendanceModule } from './components/attendance/attendance.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ParentsModule } from './modules/parents/parents.module';
 
 // Global guards
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -36,6 +37,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     AttendanceModule,
     TelegramModule,
     NotificationsModule,
+    ParentsModule,
   ],
   controllers: [AppController],
   providers: [

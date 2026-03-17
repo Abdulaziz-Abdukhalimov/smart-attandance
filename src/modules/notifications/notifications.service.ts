@@ -91,19 +91,22 @@ export class NotificationsService {
       .sort({ period: 1 })
       .lean() as any[];
 
+    const uzDays = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+    const dayName = uzDays[dayjs(date).day()];
+
     const lines: string[] = [
-      `📋 *${student.firstName} ${student.lastName}* — Daily Attendance`,
-      `📅 ${dayjs(date).format('DD MMM YYYY')}`,
-      '',
+      `📋 *${student.firstName} ${student.lastName}* — Kunlik Davomat`,
+      `📅 ${dayName}, ${dayjs(date).format('DD.MM.YYYY')}`,
+      `─────────────────────`,
     ];
 
     if (!schedules.length) {
-      lines.push('No lessons scheduled for today.');
+      lines.push('📭 Bugun dars jadvali mavjud emas.');
       return lines.join('\n');
     }
 
     for (const schedule of schedules) {
-      const subjectName = (schedule.subjectId as any)?.name ?? 'Unknown';
+      const subjectName = (schedule.subjectId as any)?.name ?? 'Noma\'lum fan';
 
       const session = await this.sessionModel.findOne({
         classId: student.classId,
@@ -113,7 +116,7 @@ export class NotificationsService {
       }).lean() as any;
 
       if (!session) {
-        lines.push(`📚 ${subjectName} — ⚠️ Attendance not recorded`);
+        lines.push(`📚 ${subjectName} — ⚠️ Davomat olinmagan`);
         continue;
       }
 
@@ -123,20 +126,20 @@ export class NotificationsService {
       }).lean() as any;
 
       if (!record) {
-        lines.push(`📚 ${subjectName} — ⚠️ Attendance not recorded`);
+        lines.push(`📚 ${subjectName} — ⚠️ Davomat olinmagan`);
         continue;
       }
 
-      const statusEmoji: Record<string, string> = {
-        PRESENT: '✅',
-        ABSENT: '❌',
-        LATE: '⏰',
+      const statusLabel: Record<string, string> = {
+        PRESENT: '✅ Keldi',
+        ABSENT:  '❌ Kelmadi',
+        LATE:    '⏰ Kech keldi',
       };
 
-      const emoji = statusEmoji[record.status] ?? '❓';
-      lines.push(`📚 ${subjectName} — ${emoji} ${record.status}`);
+      lines.push(`📚 ${subjectName} — ${statusLabel[record.status] ?? record.status}`);
     }
 
+    lines.push(`─────────────────────`);
     return lines.join('\n');
   }
 }
