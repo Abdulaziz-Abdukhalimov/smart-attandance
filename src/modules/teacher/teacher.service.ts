@@ -26,7 +26,7 @@ export class TeacherService {
   }
 
   async findAll(schoolId: string) {
-    return this.teacherModel.find({ schoolId }).lean();
+    return this.teacherModel.find({ schoolId, isActive: true }).lean();
   }
 
   async findOne(id: string, schoolId: string) {
@@ -34,7 +34,7 @@ export class TeacherService {
       throw new NotFoundException('Teacher not found');
     }
     const teacher = await this.teacherModel
-      .findOne({ _id: id, schoolId })
+      .findOne({ _id: id, schoolId, isActive: true })
       .lean();
     if (!teacher) {
       throw new NotFoundException('Teacher not found');
@@ -43,12 +43,13 @@ export class TeacherService {
   }
 
   async update(id: string, updateDto: UpdateTeacherDto, schoolId: string) {
-    if (updateDto.password) {
-      updateDto.password = await bcrypt.hash(updateDto.password, 10);
-      delete updateDto.password;
+    const updateData: any = { ...updateDto };
+    if (updateData.password) {
+      updateData.passwordHash = await bcrypt.hash(updateData.password, 10);
+      delete updateData.password;
     }
     const teacher = await this.teacherModel
-      .findOneAndUpdate({ _id: id, schoolId }, updateDto, { new: true })
+      .findOneAndUpdate({ _id: id, schoolId, isActive: true }, updateData, { new: true })
       .lean();
     if (!teacher) {
       throw new NotFoundException('Teacher not found');
@@ -71,6 +72,6 @@ export class TeacherService {
   }
 
   async findByEmail(email: string, schoolId: string) {
-    return this.teacherModel.findOne({ email, schoolId }).lean();
+    return this.teacherModel.findOne({ email, schoolId, isActive: true }).lean();
   }
 }

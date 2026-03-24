@@ -29,11 +29,15 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
-  app.enableCors();
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   const port = configService.get<number>('app.port') ?? 3000;
-  await app.listen(port);
+  const host = configService.get<string>('app.host') ?? '0.0.0.0';
+  await app.listen(port, host);
 
-  console.log(`Smart Attendance API running on port ${port}`);
+  console.log(`Smart Attendance API running on ${host}:${port}`);
 }
 bootstrap();
