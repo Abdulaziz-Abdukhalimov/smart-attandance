@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import dayjs from 'dayjs';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const TelegramBot = require('node-telegram-bot-api');
@@ -22,6 +23,9 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     @InjectModel('Parent') private readonly parentModel: Model<any>,
     @InjectModel('Student') private readonly studentModel: Model<any>,
+    @InjectModel('Attendance') private readonly attendanceModel: Model<any>,
+    @InjectModel('AttendanceSession') private readonly sessionModel: Model<any>,
+    @InjectModel('Schedule') private readonly scheduleModel: Model<any>,
   ) {}
 
   onModuleInit() {
@@ -138,14 +142,85 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       );
     });
 
-    // Keyboard button: "Bugungi davomat"
+    // Keyboard button: "Bugungi davomat" — fetch real attendance
     this.bot.onText(/📊 Bugungi davomat/, async (msg: any) => {
       const chatId = String(msg.chat.id);
-      await this.bot.sendMessage(
-        chatId,
-        '📊 Bugungi davomat xulosasi har kuni soat *16:00* da avtomatik yuboriladi.\n\nAgar bugungi ma\'lumotni ko\'rmoqchi bo\'lsangiz, kechqurun 16:00 dan keyin tekshiring.',
-        { parse_mode: 'Markdown' },
-      );
+
+      const parent = (await this.parentModel
+        .findOne({ telegramChatId: chatId })
+        .populate('studentIds', 'firstName lastName classId')
+        .lean()) as any;
+
+      if (!parent || !parent.studentIds?.length) {
+        await this.bot.sendMessage(
+          chatId,
+          '📭 Hozircha hech qanday farzand ulanmagan.\n\n/connect *KOD* buyrug\'ini yuboring.',
+          { parse_mode: 'Markdown' },
+        );
+        return;
+      }
+
+      const today = dayjs().format('YYYY-MM-DD');
+      const uzDays = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+      const dayName = uzDays[dayjs().day()];
+
+      for (const student of parent.studentIds) {
+        const jsDay = dayjs().day();
+        const weekday = jsDay === 0 ? 7 : jsDay;
+
+        const schedules = await this.scheduleModel
+          .find({ classId: student.classId, weekday, isActive: true })
+          .populate('subjectId', 'name')
+          .sort({ period: 1 })
+          .lean() as any[];
+
+        const lines: string[] = [
+          `📋 *${student.firstName} ${student.lastName}* — Bugungi Davomat`,
+          `📅 ${dayName}, ${dayjs().format('DD.MM.YYYY')}`,
+          `─────────────────────`,
+        ];
+
+        if (!schedules.length) {
+          lines.push('📭 Bugun dars jadvali mavjud emas.');
+        } else {
+          for (const schedule of schedules) {
+            const subjectName = (schedule.subjectId as any)?.name ?? 'Noma\'lum fan';
+
+            const session = await this.sessionModel.findOne({
+              classId: student.classId,
+              subjectId: schedule.subjectId?._id ?? schedule.subjectId,
+              date: today,
+              period: schedule.period,
+            }).lean() as any;
+
+            if (!session) {
+              lines.push(`📚 ${subjectName} — ⚠️ Davomat olinmagan`);
+              continue;
+            }
+
+            const record = await this.attendanceModel.findOne({
+              sessionId: session._id,
+              studentId: student._id,
+            }).lean() as any;
+
+            if (!record) {
+              lines.push(`📚 ${subjectName} — ⚠️ Davomat olinmagan`);
+              continue;
+            }
+
+            const statusLabel: Record<string, string> = {
+              PRESENT: '✅ Keldi',
+              ABSENT: '❌ Kelmadi',
+              LATE: '⏰ Kech keldi',
+            };
+
+            lines.push(`📚 ${subjectName} — ${statusLabel[record.status] ?? record.status}`);
+          }
+        }
+
+        lines.push(`─────────────────────`);
+        await this.bot.sendMessage(chatId, lines.join('\n'), { parse_mode: 'Markdown' });
+      }
     });
 
     // Keyboard button: "Yordam"
